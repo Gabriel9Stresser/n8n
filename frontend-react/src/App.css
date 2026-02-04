@@ -1,0 +1,215 @@
+.page {
+  max-width: 920px;
+  margin: 0 auto;
+  padding: 24px 16px 56px;
+}
+
+.tabs {
+  display: flex;
+  gap: 4px;
+  margin: 16px 0;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.tab {
+  padding: 10px 20px;
+  border: none;
+  background: transparent;
+  font-weight: 600;
+  font-size: 14px;
+  color: #6b7280;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+}
+
+.tab:hover {
+  color: #111827;
+}
+
+.tab.active {
+  color: #2563eb;
+  border-bottom-color: #2563eb;
+}
+
+.stepTabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 16px 0;
+}
+
+.stepTab {
+  padding: 8px 12px;
+  border: 1px solid #e5e7eb;
+  background: #f9fafb;
+  font-size: 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  color: #4b5563;
+}
+
+.stepTab:hover {
+  background: #f3f4f6;
+}
+
+.stepTab.active {
+  background: #eff6ff;
+  border-color: #2563eb;
+  color: #2563eb;
+}
+
+.approvalPanel {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid #e5e7eb;
+}
+
+.pendingSection {
+  margin-bottom: 20px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.pendingSection h3 {
+  margin: 0 0 10px;
+  font-size: 14px;
+}
+
+.pendingList {
+  margin: 12px 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.pendingItem {
+  padding: 12px;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  font-size: 13px;
+}
+
+.pendingItem strong {
+  color: #111827;
+}
+
+.pendingUrl {
+  display: block;
+  margin: 6px 0 8px;
+  padding: 6px 8px;
+  background: #f3f4f6;
+  border-radius: 4px;
+  font-size: 11px;
+  word-break: break-all;
+}
+
+.pendingItem .btn {
+  font-size: 12px;
+  padding: 6px 12px;
+}
+
+.header h1 {
+  font-size: 22px;
+  margin: 0 0 6px;
+}
+
+.header p {
+  margin: 0;
+  color: #4b5563;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.card {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 16px;
+}
+
+.card h2 {
+  margin: 0 0 10px;
+  font-size: 16px;
+}
+
+.hint {
+  color: #6b7280;
+  font-size: 13px;
+  margin-top: 8px;
+}
+
+.monoBox {
+  margin-top: 10px;
+  background: #f3f4f6;
+  border: 1px solid #e5e7eb;
+  padding: 10px;
+  border-radius: 8px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
+  font-size: 12px;
+  word-break: break-all;
+}
+
+.row {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.row label {
+  font-weight: 600;
+  font-size: 13px;
+}
+
+.row input {
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid #d1d5db;
+  outline: none;
+}
+
+.actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 10px;
+}
+
+.btn {
+  border-radius: 10px;
+  border: 1px solid #d1d5db;
+  background: #ffffff;
+  padding: 10px 12px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.btn.approve { background: #e8f5e9; }
+.btn.reject { background: #ffebee; }
+.btn.return { background: #fff3e0; }
+
+.msg {
+  margin-top: 10px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid #e5e7eb;
+  background: #f9fafb;
+  font-size: 13px;
+  white-space: pre-wrap;
+}
+
+.msg.error {
+  background: #ffebee;
+  border-color: #fecaca;
+}
+
+.msg.success {
+  background: #e8f5e9;
+  border-color: #bbf7d0;
+}
