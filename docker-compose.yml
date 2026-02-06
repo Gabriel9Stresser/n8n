@@ -10,6 +10,10 @@ services:
       - TZ=America/Sao_Paulo
       - N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS=true
       - N8N_ALLOWED_ORIGINS=http://localhost:3000,http://127.0.0.1:3000
+      # Necessário para API – Fila de Aprovação e API – Etapas do Maria:
+      - N8N_BASE_URL=http://localhost:5678
+      # Obtenha em: n8n → Settings → API → Create API Key
+      - N8N_API_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJmNDNiNWYyMC04MzRkLTQzOTMtOTE4NS1hNzlhZDdiZjZhNTQiLCJpc3MiOiJuOG4iLCJhdWQiOiJwdWJsaWMtYXBpIiwianRpIjoiM2ZlM2IyODEtMTQxMC00ZWY0LWFkZjgtMDc2NGYxZjhkZWEyIiwiaWF0IjoxNzcwMzc3MTczLCJleHAiOjE3NzI5Mzg4MDB9.UMW1iYQLYn1thwhQDIaFu-fqfObidvinhBnIvENUlvA
     volumes:
       - n8n_data:/home/node/.n8n
       - ./workflows:/workflows:ro

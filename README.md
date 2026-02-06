@@ -8,6 +8,8 @@ Projeto para rodar os workflows **Approval Sub-Workflow** e **Maria's** no n8n l
 - **`workflows/`** – JSON dos fluxos para importar no n8n:
   - `approval-sub-workflow.json` – Sub-workflow de aprovação (Wait + validação).
   - `marias.json` – Workflow principal (webhook `/treasury` + cadeia de etapas).
+  - `api-marias-steps.json` – API que expõe as etapas de wait do Maria's (GET `/webhook/marias-steps`). O frontend usa essa API para listar as etapas dinamicamente.
+  - `api-approval-queue.json` – API que retorna a fila de aprovação com etapa do Maria e `waitUrl` (GET `/webhook/approval-queue`). O frontend usa essa API para buscar itens pendentes de forma dinâmica.
 - **`frontend-react/`** – App React (Vite) com SurveyJS que inicia o fluxo e envia aprovação/rejeição/devolução.
 - **`frontend/`** – Versão HTML estática (legado/alternativa).
 
@@ -51,7 +53,8 @@ Acesse: **http://localhost:5678**
      - Abra o workflow **Maria's**.
      - Em cada nó **Execute Workflow**, clique no nó e escolha de novo **Approval Sub-Workflow** na lista.
    - Salve.
-4. **Ative os dois workflows** (toggle “Active” no canto superior).
+4. **Opcional – APIs dinâmicas:** importe **`workflows/api-marias-steps.json`** e **`workflows/api-approval-queue.json`** para o frontend buscar etapas e fila de aprovação dinamicamente. Ative os workflows e configure no n8n (ou via ambiente) as variáveis **`N8N_BASE_URL`** (ex.: `http://localhost:5678` ou `http://n8n:5678` em Docker) e **`N8N_API_KEY`** (API key do n8n para os nós HTTP Request chamarem a API interna).
+5. **Ative os workflows** (toggle “Active” no canto superior).
 
 ## 3. Rodar o frontend (React)
 
@@ -105,14 +108,20 @@ Abra no navegador o endereço indicado (ex.: **http://localhost:3000**).
 
 ## URLs importantes
 
-| Uso              | URL (n8n local)                                   |
-| ---------------- | ------------------------------------------------- |
-| Interface n8n    | http://localhost:5678                             |
-| Webhook Treasury | http://localhost:5678/webhook/treasury (POST)     |
-| Frontend         | http://localhost:3000 (após `npx serve frontend`) |
+| Uso                | URL (n8n local)                                    |
+| ------------------ | -------------------------------------------------- |
+| Interface n8n      | http://localhost:5678                              |
+| Webhook Treasury   | http://localhost:5678/webhook/treasury (POST)      |
+| API etapas Maria   | http://localhost:5678/webhook/marias-steps (GET)   |
+| API fila aprovação | http://localhost:5678/webhook/approval-queue (GET) |
+| Frontend           | http://localhost:3000 (após `npx serve frontend`)  |
 
 ## Observações
 
 - **CORS:** Se o frontend estiver em outro host/porta, o navegador pode bloquear requisições ao n8n. Servir o frontend e o n8n no mesmo host (ex.: localhost) ou usar um proxy evita o problema em ambiente local.
 - **IDs dos workflows:** Ao importar, o n8n pode atribuir novos IDs. Se o Maria's não encontrar o sub-workflow, reabra o Maria's e reassocie cada nó “Execute Workflow” ao **Approval Sub-Workflow**.
 - **Webhook em produção:** Para uso fora da máquina local (ex.: tunnel ou servidor), configure `WEBHOOK_URL` no n8n conforme a [documentação](https://docs.n8n.io/hosting/configuration/environment-variables/endpoints).
+- **Workflows API:** Os workflows **API – Etapas do Maria** e **API – Fila de Aprovação** chamam a API do n8n internamente. É **obrigatório** configurar:
+  - **`N8N_BASE_URL`** – URL do n8n (ex.: `http://localhost:5678` ou `http://n8n:5678` em Docker)
+  - **`N8N_API_KEY`** – Crie em: n8n → Settings → API → Create API Key  
+    No Docker, use um arquivo `.env` na raiz com `N8N_API_KEY=sua_chave` e reinicie o compose. Sem isso, a fila de aprovação retorna vazia.

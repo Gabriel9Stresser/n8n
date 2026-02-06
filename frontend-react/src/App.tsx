@@ -1,12 +1,14 @@
 import "./App.css";
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Model } from "survey-core";
 import { Survey } from "survey-react-ui";
 
 const DEFAULT_DEPARTMENT = 18600;
 const DEFAULT_N8N_BASE = "http://localhost:5678";
 
-const APPROVAL_STEPS = [
+export type StepItem = { id: string; name: string; stepName?: string };
+
+const FALLBACK_STEPS: StepItem[] = [
   "Onboarding Team Review",
   "DocuSign - Customer Signature",
   "Compliance Review",
@@ -16,23 +18,25 @@ const APPROVAL_STEPS = [
   "Profile Activation",
   "User SMS",
   "Training Session",
-] as const;
+].map((name) => ({ id: name, name, stepName: name }));
 
 function App() {
-  const [activeTab, setActiveTab] = useState<"start" | "approve">("start");
-  const [selectedStep, setSelectedStep] = useState<string>(APPROVAL_STEPS[0]);
+  const [activeTab, setActiveTab] = useState<"start" | string>("start");
+  const [steps, setSteps] = useState<StepItem[]>([]);
+  const [stepsLoading, setStepsLoading] = useState(false);
+  const [stepsError, setStepsError] = useState<string | null>(null);
   const [n8nBase, setN8nBase] = useState<string>(
     import.meta.env.VITE_N8N_BASE ?? DEFAULT_N8N_BASE
   );
   const [startResponse, setStartResponse] = useState<unknown>(null);
   const [startError, setStartError] = useState<string | null>(null);
 
-  const [waitUrls, setWaitUrls] = useState<Record<string, string>>({});
-  const [approvalResponse, setApprovalResponse] = useState<unknown>(null);
-  const [approvalError, setApprovalError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [busyItemId, setBusyItemId] = useState<string | null>(null);
+  const [actionFeedback, setActionFeedback] = useState<
+    Record<string, { type: "success" | "error"; msg: string }>
+  >({});
 
-  const [n8nApiKey, setN8nApiKey] = useState("");
   const [pendingExecutions, setPendingExecutions] = useState<
     Array<{
       id: string;
@@ -42,6 +46,104 @@ function App() {
     }>
   >([]);
   const [loadingPending, setLoadingPending] = useState(false);
+  const [pendingError, setPendingError] = useState<string | null>(null);
+
+  const effectiveSteps = steps.length > 0 ? steps : FALLBACK_STEPS;
+
+  // Rótulos únicos para abas: evita duplicata quando a API devolve mesmo stepName em nós diferentes
+  const stepsWithDisplayLabel = effectiveSteps.map((step, i) => {
+    const stepName = step.stepName ?? step.name;
+    const alreadyUsed = effectiveSteps
+      .slice(0, i)
+      .some((s) => (s.stepName ?? s.name) === stepName);
+    return {
+      ...step,
+      displayLabel: alreadyUsed ? step.name : stepName,
+    };
+  });
+
+  useEffect(() => {
+    let cancelled = false;
+    setStepsError(null);
+    setStepsLoading(true);
+    const base = n8nBase.replace(/\/$/, "") || DEFAULT_N8N_BASE;
+    fetch(`${base}/webhook/marias-steps`)
+      .then((res) =>
+        res.ok ? res.json() : Promise.reject(new Error(`HTTP ${res.status}`))
+      )
+      .then((data: { steps?: StepItem[]; error?: string }) => {
+        if (cancelled) return;
+        const list = Array.isArray(data?.steps) ? data.steps : [];
+        setSteps(list);
+        if (data?.error) setStepsError(data.error);
+        setActiveTab((current) => {
+          if (current === "start") return "start";
+          const ids =
+            list.length > 0
+              ? list.map((s) => s.id)
+              : FALLBACK_STEPS.map((s) => s.id);
+          return ids.includes(current) ? current : ids[0] ?? "start";
+        });
+      })
+      .catch((e) => {
+        if (!cancelled) {
+          setSteps([]);
+          setStepsError(e instanceof Error ? e.message : String(e));
+        }
+      })
+      .finally(() => {
+        if (!cancelled) setStepsLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [n8nBase]);
+
+  const n8nHost = n8nBase.replace(/\/$/, "") || "http://localhost:5678";
+
+  const fetchPendingExecutions = useCallback(async () => {
+    setLoadingPending(true);
+    setPendingExecutions([]);
+    setPendingError(null);
+    try {
+      const base = n8nHost.replace(/\/$/, "") || window.location.origin;
+      const res = await fetch(`${base}/webhook/approval-queue`);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const json = (await res.json()) as {
+        items?: Array<{
+          id: string;
+          workflowName: string;
+          stepName?: string | null;
+          waitUrl: string;
+        }>;
+        error?: string;
+      };
+      const items = Array.isArray(json?.items) ? json.items : [];
+      if (json?.error) setPendingError(json.error);
+
+      const results = items.map((e) => ({
+        id: e.id,
+        workflowName: e.workflowName ?? "?",
+        stepName: e.stepName ?? undefined,
+        waitUrl: e.waitUrl,
+      }));
+
+      setPendingExecutions(results);
+    } catch (e) {
+      setPendingError(e instanceof Error ? e.message : String(e));
+      setPendingExecutions([
+        { id: "erro", workflowName: String(e), waitUrl: "" },
+      ]);
+    } finally {
+      setLoadingPending(false);
+    }
+  }, [n8nHost]);
+
+  useEffect(() => {
+    if (activeTab !== "start") {
+      fetchPendingExecutions();
+    }
+  }, [activeTab, fetchPendingExecutions]);
 
   const surveyModel = useMemo(() => {
     const m = new Model({
@@ -66,8 +168,6 @@ function App() {
     m.onComplete.add(async (sender) => {
       setStartError(null);
       setStartResponse(null);
-      setApprovalError(null);
-      setApprovalResponse(null);
 
       const data = sender.data as {
         name?: string;
@@ -105,34 +205,65 @@ function App() {
     return m;
   }, [n8nBase]);
 
-  const waitUrl = waitUrls[selectedStep] ?? "";
-
-  async function sendApproval(action: "approve" | "reject" | "return") {
-    setApprovalError(null);
-    setApprovalResponse(null);
-
-    const url = waitUrl.trim();
+  const currentStep =
+    activeTab !== "start"
+      ? effectiveSteps.find((s) => s.id === activeTab) ?? null
+      : null;
+  const currentStepDisplayLabel = currentStep
+    ? stepsWithDisplayLabel.find((s) => s.id === currentStep.id)
+        ?.displayLabel ?? currentStep.name
+    : "";
+  async function sendApproval(
+    item: { id: string; waitUrl: string },
+    action: "approve" | "reject" | "return"
+  ) {
+    const url = item.waitUrl?.trim();
     if (!url) {
-      setApprovalError(
-        "Informe o URL do nó Wait (copie do n8n via View sub-execution)."
-      );
+      setActionFeedback((prev) => ({
+        ...prev,
+        [item.id]: { type: "error", msg: "URL do Wait inválida." },
+      }));
       return;
     }
 
     setBusy(true);
+    setBusyItemId(item.id);
+    setActionFeedback((prev) => {
+      const next = { ...prev };
+      delete next[item.id];
+      return next;
+    });
     try {
       const resp = await postJson<unknown>(url, {
         action,
         department: DEFAULT_DEPARTMENT,
       });
-      if (!resp.ok) {
-        setApprovalError(`Falha ao enviar ação (HTTP ${resp.status}).`);
+      if (resp.ok) {
+        setActionFeedback((prev) => ({
+          ...prev,
+          [item.id]: {
+            type: "success",
+            msg: `Ação "${action}" enviada. Atualize a lista.`,
+          },
+        }));
+        fetchPendingExecutions();
+      } else {
+        setActionFeedback((prev) => ({
+          ...prev,
+          [item.id]: { type: "error", msg: `Falha (HTTP ${resp.status}).` },
+        }));
       }
-      setApprovalResponse(resp.json ?? resp.text ?? null);
     } catch (e) {
-      setApprovalError(e instanceof Error ? e.message : String(e));
+      setActionFeedback((prev) => ({
+        ...prev,
+        [item.id]: {
+          type: "error",
+          msg: e instanceof Error ? e.message : String(e),
+        },
+      }));
     } finally {
       setBusy(false);
+      setBusyItemId(null);
     }
   }
 
@@ -143,103 +274,6 @@ function App() {
       ? String((startResponse as Record<string, unknown>).resumeUrl)
       : null;
 
-  const n8nHost = n8nBase.replace(/\/$/, "") || "http://localhost:5678";
-
-  async function fetchPendingExecutions() {
-    if (!n8nApiKey.trim()) return;
-    setLoadingPending(true);
-    setPendingExecutions([]);
-    try {
-      const base = n8nHost.replace(/\/$/, "") || window.location.origin;
-      const res = await fetch(
-        `${base}/api/v1/executions?status=waiting&limit=20`,
-        { headers: { "X-N8N-API-KEY": n8nApiKey } }
-      );
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const json = (await res.json()) as {
-        data?: Array<{ id: string; workflowData?: { name?: string } }>;
-      };
-      const list = Array.isArray(json.data) ? json.data : [];
-      const approvalOnly = list.filter((e) =>
-        (e.workflowData?.name ?? "").includes("Approval")
-      );
-
-      const results: Array<{
-        id: string;
-        workflowName: string;
-        stepName?: string;
-        waitUrl: string;
-      }> = [];
-
-      for (const e of approvalOnly) {
-        const waitUrl = `${n8nHost.replace(/\/$/, "")}/webhook-waiting/${e.id}`;
-        let stepName: string | undefined;
-        try {
-          const detailRes = await fetch(
-            `${base}/api/v1/executions/${e.id}?includeData=true`,
-            { headers: { "X-N8N-API-KEY": n8nApiKey } }
-          );
-          if (detailRes.ok) {
-            const detail = (await detailRes.json()) as Record<string, unknown>;
-            const resultData =
-              (detail?.data as Record<string, unknown>)?.resultData ??
-              detail?.resultData;
-            const runData = (resultData as Record<string, unknown>)?.runData as
-              | Record<
-                  string,
-                  Array<{
-                    data?: {
-                      main?: Array<Array<{ json?: Record<string, unknown> }>>;
-                    };
-                  }>
-                >
-              | undefined;
-            if (runData) {
-              for (const nodeRuns of Object.values(runData)) {
-                const firstRun = nodeRuns?.[0];
-                const jsonData = firstRun?.data?.main?.[0]?.[0]?.json;
-                if (jsonData && typeof jsonData.stepName === "string") {
-                  stepName = jsonData.stepName;
-                  break;
-                }
-              }
-            }
-          }
-        } catch {
-          // ignora erro ao buscar detalhes
-        }
-        results.push({
-          id: e.id,
-          workflowName: e.workflowData?.name ?? "?",
-          stepName,
-          waitUrl,
-        });
-      }
-
-      setPendingExecutions(results);
-    } catch (e) {
-      setPendingExecutions([
-        { id: "erro", workflowName: String(e), waitUrl: "" },
-      ]);
-    } finally {
-      setLoadingPending(false);
-    }
-  }
-
-  function updateWaitUrl(step: string, value: string) {
-    setWaitUrls((prev) => ({ ...prev, [step]: value }));
-  }
-
-  function selectPendingItem(item: (typeof pendingExecutions)[0]) {
-    const step =
-      item.stepName &&
-      APPROVAL_STEPS.includes(item.stepName as (typeof APPROVAL_STEPS)[number])
-        ? item.stepName
-        : APPROVAL_STEPS[0];
-    setSelectedStep(step);
-    updateWaitUrl(step, item.waitUrl);
-  }
-
   return (
     <div className="page">
       <header className="header">
@@ -247,6 +281,12 @@ function App() {
         <p>Inicie o fluxo e aprove cada etapa. Use as abas para organizar.</p>
       </header>
 
+      {stepsLoading && steps.length === 0 && (
+        <div className="msg">Carregando etapas...</div>
+      )}
+      {stepsError && steps.length === 0 && (
+        <div className="hint">Etapas (fallback): {stepsError}</div>
+      )}
       <div className="tabs">
         <button
           type="button"
@@ -255,13 +295,16 @@ function App() {
         >
           Iniciar fluxo
         </button>
-        <button
-          type="button"
-          className={`tab ${activeTab === "approve" ? "active" : ""}`}
-          onClick={() => setActiveTab("approve")}
-        >
-          Aprovar etapas
-        </button>
+        {stepsWithDisplayLabel.map((step) => (
+          <button
+            key={step.id}
+            type="button"
+            className={`tab ${activeTab === step.id ? "active" : ""}`}
+            onClick={() => setActiveTab(step.id)}
+          >
+            {step.displayLabel}
+          </button>
+        ))}
       </div>
 
       {activeTab === "start" && (
@@ -284,8 +327,7 @@ function App() {
           {startResponse != null && (
             <>
               <div className="hint">
-                Resposta do webhook. Para aprovar, vá na aba{" "}
-                <strong>Aprovar etapas</strong>.
+                Resposta do webhook. Para aprovar, use a aba da etapa desejada.
               </div>
               <div className="monoBox">
                 {resumeUrl ?? safeJsonStringify(startResponse)}
@@ -295,112 +337,94 @@ function App() {
         </section>
       )}
 
-      {activeTab === "approve" && (
+      {activeTab !== "start" && currentStep && (
         <section className="card">
-          <h2>Etapas de aprovação</h2>
+          <h2>{currentStepDisplayLabel}</h2>
 
           <div className="pendingSection">
-            <h3>Itens pendentes (opcional)</h3>
-            <div className="row" style={{ marginBottom: 8 }}>
-              <label>API Key n8n (para buscar execuções em espera)</label>
-              <input
-                type="password"
-                value={n8nApiKey}
-                onChange={(e) => setN8nApiKey(e.target.value)}
-                placeholder="Cole sua API key do n8n"
-              />
+            <h3>Itens pendentes nesta etapa</h3>
+            <div className="hint" style={{ marginBottom: 8 }}>
+              A fila é buscada dinamicamente da API /webhook/approval-queue
+              (etapa do Maria + waitUrl).
             </div>
             <button
               type="button"
               className="btn"
               onClick={fetchPendingExecutions}
-              disabled={loadingPending || !n8nApiKey.trim()}
+              disabled={loadingPending}
             >
               {loadingPending ? "Carregando..." : "Buscar pendentes"}
             </button>
-            {pendingExecutions.length > 0 && (
-              <div className="pendingList">
-                {pendingExecutions.map((e) => (
-                  <div key={e.id} className="pendingItem">
-                    <div>
-                      <strong>{e.stepName ?? e.workflowName}</strong>
-                      <span className="hint"> – Execução #{e.id}</span>
+            {pendingError && (
+              <div className="msg error" style={{ marginTop: 8 }}>
+                {pendingError}
+              </div>
+            )}
+            {pendingExecutions.filter(
+              (e) =>
+                e.stepName === currentStep.stepName ||
+                e.stepName === currentStep.name
+            ).length > 0 ? (
+              <div className="pendingList" style={{ marginTop: 8 }}>
+                {pendingExecutions
+                  .filter(
+                    (e) =>
+                      e.stepName === currentStep.stepName ||
+                      e.stepName === currentStep.name
+                  )
+                  .map((e) => (
+                    <div key={e.id} className="pendingItem">
+                      <div>
+                        <strong>{e.stepName ?? e.workflowName}</strong>
+                        <span className="hint"> – Execução #{e.id}</span>
+                      </div>
+                      <div className="actions" style={{ marginTop: 8 }}>
+                        <button
+                          type="button"
+                          className="btn approve"
+                          onClick={() => sendApproval(e, "approve")}
+                          disabled={busy && busyItemId === e.id}
+                        >
+                          Aprovar
+                        </button>
+                        <button
+                          type="button"
+                          className="btn reject"
+                          onClick={() => sendApproval(e, "reject")}
+                          disabled={busy && busyItemId === e.id}
+                        >
+                          Rejeitar
+                        </button>
+                        <button
+                          type="button"
+                          className="btn return"
+                          onClick={() => sendApproval(e, "return")}
+                          disabled={busy && busyItemId === e.id}
+                        >
+                          Devolver
+                        </button>
+                      </div>
+                      {actionFeedback[e.id] && (
+                        <div
+                          className={`msg ${
+                            actionFeedback[e.id].type === "success"
+                              ? "success"
+                              : "error"
+                          }`}
+                          style={{ marginTop: 8 }}
+                        >
+                          {actionFeedback[e.id].msg}
+                        </div>
+                      )}
                     </div>
-                    <code className="pendingUrl">{e.waitUrl}</code>
-                    <button
-                      type="button"
-                      className="btn approve"
-                      onClick={() => selectPendingItem(e)}
-                    >
-                      Usar este
-                    </button>
-                  </div>
-                ))}
+                  ))}
               </div>
-            )}
-          </div>
-
-          <div className="stepTabs">
-            {APPROVAL_STEPS.map((step) => (
-              <button
-                key={step}
-                type="button"
-                className={`stepTab ${selectedStep === step ? "active" : ""}`}
-                onClick={() => setSelectedStep(step)}
-              >
-                {step}
-              </button>
-            ))}
-          </div>
-
-          <div className="approvalPanel">
-            <h3>{selectedStep}</h3>
-            <div className="hint">
-              No n8n: Maria's → View sub-execution → nó Wait → copie Production
-              URL.
-            </div>
-            <div className="row" style={{ marginTop: 12 }}>
-              <label>URL do Wait</label>
-              <input
-                type="text"
-                value={waitUrls[selectedStep] ?? ""}
-                onChange={(e) => updateWaitUrl(selectedStep, e.target.value)}
-                placeholder="http://localhost:5678/webhook-waiting/..."
-              />
-            </div>
-            <div className="actions">
-              <button
-                type="button"
-                className="btn approve"
-                onClick={() => sendApproval("approve")}
-                disabled={busy}
-              >
-                Aprovar
-              </button>
-              <button
-                type="button"
-                className="btn reject"
-                onClick={() => sendApproval("reject")}
-                disabled={busy}
-              >
-                Rejeitar
-              </button>
-              <button
-                type="button"
-                className="btn return"
-                onClick={() => sendApproval("return")}
-                disabled={busy}
-              >
-                Devolver
-              </button>
-            </div>
-            {approvalError && (
-              <div className="msg error">Erro: {approvalError}</div>
-            )}
-            {approvalResponse != null && (
-              <div className="msg success">
-                Resposta: {safeJsonStringify(approvalResponse)}
-              </div>
+            ) : (
+              pendingExecutions.length > 0 && (
+                <div className="hint" style={{ marginTop: 8 }}>
+                  Nenhum item pendente nesta etapa.
+                </div>
+              )
             )}
           </div>
         </section>

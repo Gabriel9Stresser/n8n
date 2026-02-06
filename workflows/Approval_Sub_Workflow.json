@@ -1,0 +1,216 @@
+{
+  "name": "Approval Sub-Workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "inputSource": "jsonExample",
+        "jsonExample": "{\n  \"department\": 18600,\n  \"stepName\": \"Manager's approval\",\n  \"parentResumeUrl\": \"https://url.safra.com\"\n}"
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -896,
+        112
+      ],
+      "id": "5c46ac09-e27f-468d-87d9-b3fe3f4726bb",
+      "name": "When Executed by Another Workflow"
+    },
+    {
+      "parameters": {
+        "resume": "webhook",
+        "httpMethod": "POST",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        -672,
+        112
+      ],
+      "id": "d9cc6f88-9d91-46e8-add4-adaa32aeacf2",
+      "name": "Wait",
+      "webhookId": "1a37c0dc-0fb6-463f-9404-d94c82157dde"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "5dda1b9b-4055-41b4-9d71-9b7b404d49a4",
+              "leftValue": "={{ $json.isValid }}",
+              "rightValue": "true",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -224,
+        48
+      ],
+      "id": "75f8e216-73d6-4399-a639-f460b3f02bb0",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\n  \"result\": \"invalid\"\n}",
+        "options": {
+          "responseCode": 400
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        0,
+        208
+      ],
+      "id": "78490021-099e-4237-b77d-c118ee040a76",
+      "name": "Bad request"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\n  \"result\": \"ok\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        0,
+        0
+      ],
+      "id": "40a94a49-7654-46de-844d-28023078fa30",
+      "name": "Success"
+    },
+    {
+      "parameters": {
+        "jsCode": "const isValid = $('When Executed by Another Workflow').first().json.department === $input.first().json.body.department\n\nreturn { isValid };\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -448,
+        48
+      ],
+      "id": "6ad4a972-5aef-45f7-bc3f-4d6f625e2b80",
+      "name": "Validation"
+    },
+    {
+      "parameters": {
+        "jsCode": "return { \n  action: $('Wait').first().json.body.action,\n  isValid: $('Validation').first().json.isValid\n};\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        224,
+        0
+      ],
+      "id": "3bd0c395-1823-4e08-acbc-9548c7dedc8d",
+      "name": "Parent workflow response"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait": {
+      "main": [
+        [
+          {
+            "node": "Validation",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Success",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Bad request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Bad request": {
+      "main": [
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Success": {
+      "main": [
+        [
+          {
+            "node": "Parent workflow response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validation": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "10739e92-3df1-4863-a40b-bd9e0338484f",
+  "meta": {
+    "instanceId": "01d4e1c1390e48226f3e36a2b2d517243427ec36a47f0fb53b48e67357e5e3f0"
+  },
+  "id": "tNk5pGDCLuVJh37yeGZBb",
+  "tags": []
+}

@@ -13,4 +13,10 @@ docker exec -u node "$CONTAINER" n8n import:workflow --input="$WORKFLOWS_DIR/app
 echo "2. Importando Maria's..."
 docker exec -u node "$CONTAINER" n8n import:workflow --input="$WORKFLOWS_DIR/marias.json"
 
-echo "Pronto! Abra http://localhost:5678 e ATIVE os dois workflows (toggle Active)."
+echo "3. Importando API – Etapas do Maria..."
+docker exec -u node "$CONTAINER" n8n import:workflow --input="$WORKFLOWS_DIR/api-marias-steps.json"
+
+echo "4. Importando API – Fila de Aprovação..."
+docker exec -u node "$CONTAINER" n8n import:workflow --input="$WORKFLOWS_DIR/api-approval-queue.json"
+
+echo "Pronto! Abra http://localhost:5678 e ATIVE os workflows (toggle Active)."

@@ -10,8 +10,8 @@
       },
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2,
-      "position": [-800, -32],
-      "id": "da168705-2116-49db-ac2c-4a25214d3021",
+      "position": [-672, 16],
+      "id": "6ba6a7fd-ebe4-4093-a5fc-6a8e21d2fe61",
       "name": "Webhook",
       "webhookId": "aabfe8e2-e1b4-45b3-b4ac-e0e7853bcf71"
     },
@@ -23,8 +23,8 @@
       },
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.3,
-      "position": [-576, -32],
-      "id": "0d943450-2efd-4b7a-aad8-ef27f28d3632",
+      "position": [-448, 16],
+      "id": "99b1d4bf-f70c-4c69-a4e9-57dba5099d31",
       "name": "Respond to Webhook"
     },
     {
@@ -111,25 +111,25 @@
       },
       "type": "n8n-nodes-base.switch",
       "typeVersion": 3.2,
-      "position": [-128, -48],
-      "id": "01f50529-4ab1-4c1b-85f1-bffbca541ef1",
+      "position": [0, 0],
+      "id": "ecedcd76-02bc-4135-b609-816e876c0770",
       "name": "Switch4"
     },
     {
       "parameters": {
         "workflowId": {
           "__rl": true,
-          "value": "LXR1D2E3XpKlxQ9t",
+          "value": "tNk5pGDCLuVJh37yeGZBb",
           "mode": "list",
-          "cachedResultUrl": "/workflow/LXR1D2E3XpKlxQ9t",
+          "cachedResultUrl": "/workflow/tNk5pGDCLuVJh37yeGZBb",
           "cachedResultName": "Approval Sub-Workflow"
         },
         "workflowInputs": {
           "mappingMode": "defineBelow",
           "value": {
             "department": 18600,
-            "stepName": "Onboarding Team Review",
-            "parentResumeUrl": "={{ $execution.resumeUrl }}"
+            "parentResumeUrl": "={{ $execution.resumeUrl }}",
+            "stepName": "Onboarding Team Review"
           },
           "matchingColumns": [],
           "schema": [
@@ -140,8 +140,7 @@
               "defaultMatch": false,
               "display": true,
               "canBeUsedToMatch": true,
-              "type": "number",
-              "removed": false
+              "type": "number"
             },
             {
               "id": "stepName",
@@ -150,8 +149,7 @@
               "defaultMatch": false,
               "display": true,
               "canBeUsedToMatch": true,
-              "type": "string",
-              "removed": false
+              "type": "string"
             },
             {
               "id": "parentResumeUrl",
@@ -160,8 +158,7 @@
               "defaultMatch": false,
               "display": true,
               "canBeUsedToMatch": true,
-              "type": "string",
-              "removed": false
+              "type": "string"
             }
           ],
           "attemptToConvertTypes": false,
@@ -173,8 +170,8 @@
       },
       "type": "n8n-nodes-base.executeWorkflow",
       "typeVersion": 1.3,
-      "position": [-352, -32],
-      "id": "0b2ccc09-1bd7-44c8-98ef-6609b06d444d",
+      "position": [-224, 16],
+      "id": "1d21c704-5d4c-4887-8514-0ffb04a631cb",
       "name": "Onboarding Team Review"
     },
     {
@@ -261,25 +258,25 @@
       },
       "type": "n8n-nodes-base.switch",
       "typeVersion": 3.2,
-      "position": [320, -48],
-      "id": "76204017-c307-45b0-8955-68338b4c242f",
+      "position": [448, 0],
+      "id": "8f74d0e2-cae5-4b0f-844c-3371dc3c7b35",
       "name": "Switch5"
     },
     {
       "parameters": {
         "workflowId": {
           "__rl": true,
-          "value": "LXR1D2E3XpKlxQ9t",
+          "value": "tNk5pGDCLuVJh37yeGZBb",
           "mode": "list",
-          "cachedResultUrl": "/workflow/LXR1D2E3XpKlxQ9t",
+          "cachedResultUrl": "/workflow/tNk5pGDCLuVJh37yeGZBb",
           "cachedResultName": "Approval Sub-Workflow"
         },
         "workflowInputs": {
           "mappingMode": "defineBelow",
           "value": {
-            "department": 18600,
+            "parentResumeUrl": "={{ $execution.resumeUrl }}",
             "stepName": "DocuSign - Customer Signature",
-            "parentResumeUrl": "={{ $execution.resumeUrl }}"
+            "department": 18600
           },
           "matchingColumns": [],
           "schema": [
@@ -290,8 +287,7 @@
               "defaultMatch": false,
               "display": true,
               "canBeUsedToMatch": true,
-              "type": "number",
-              "removed": false
+              "type": "number"
             },
             {
               "id": "stepName",
@@ -300,8 +296,7 @@
               "defaultMatch": false,
               "display": true,
               "canBeUsedToMatch": true,
-              "type": "string",
-              "removed": false
+              "type": "string"
             },
             {
               "id": "parentResumeUrl",
@@ -310,8 +305,7 @@
               "defaultMatch": false,
               "display": true,
               "canBeUsedToMatch": true,
-              "type": "string",
-              "removed": false
+              "type": "string"
             }
           ],
           "attemptToConvertTypes": false,
@@ -323,25 +317,25 @@
       },
       "type": "n8n-nodes-base.executeWorkflow",
       "typeVersion": 1.3,
-      "position": [96, -32],
-      "id": "5f88d9b6-46b6-4078-8048-fb7bef4c0299",
+      "position": [224, 16],
+      "id": "59d1559e-31ce-4253-8cea-a686023d807b",
       "name": "DocuSign - Customer Signature"
     },
     {
       "parameters": {
         "workflowId": {
           "__rl": true,
-          "value": "LXR1D2E3XpKlxQ9t",
+          "value": "tNk5pGDCLuVJh37yeGZBb",
           "mode": "list",
-          "cachedResultUrl": "/workflow/LXR1D2E3XpKlxQ9t",
+          "cachedResultUrl": "/workflow/tNk5pGDCLuVJh37yeGZBb",
           "cachedResultName": "Approval Sub-Workflow"
         },
         "workflowInputs": {
           "mappingMode": "defineBelow",
           "value": {
-            "department": 18600,
-            "stepName": "DocuSign - Customer Signature",
-            "parentResumeUrl": "={{ $execution.resumeUrl }}"
+            "parentResumeUrl": "={{ $execution.resumeUrl }}",
+            "stepName": "Compliance Review",
+            "department": 18600
           },
           "matchingColumns": [],
           "schema": [
@@ -352,8 +346,7 @@
               "defaultMatch": false,
               "display": true,
               "canBeUsedToMatch": true,
-              "type": "number",
-              "removed": false
+              "type": "number"
             },
             {
               "id": "stepName",
@@ -362,8 +355,7 @@
               "defaultMatch": false,
               "display": true,
               "canBeUsedToMatch": true,
-              "type": "string",
-              "removed": false
+              "type": "string"
             },
             {
               "id": "parentResumeUrl",
@@ -372,8 +364,7 @@
               "defaultMatch": false,
               "display": true,
               "canBeUsedToMatch": true,
-              "type": "string",
-              "removed": false
+              "type": "string"
             }
           ],
           "attemptToConvertTypes": false,
@@ -385,8 +376,8 @@
       },
       "type": "n8n-nodes-base.executeWorkflow",
       "typeVersion": 1.3,
-      "position": [544, -32],
-      "id": "5931d6d4-c277-4ccc-aec0-410294c6e24f",
+      "position": [672, 16],
+      "id": "bc0f39a0-3a71-4af7-a3d3-5f27e7f95a9f",
       "name": "Compliance Review"
     },
     {
@@ -473,25 +464,25 @@
       },
       "type": "n8n-nodes-base.switch",
       "typeVersion": 3.2,
-      "position": [768, -48],
-      "id": "4dd55e4a-542c-4ab1-9a3e-c7507bb122fc",
+      "position": [896, 0],
+      "id": "569e40bc-9822-4beb-a479-d9dfb38e0225",
       "name": "Switch"
     },
     {
       "parameters": {
         "workflowId": {
           "__rl": true,
-          "value": "LXR1D2E3XpKlxQ9t",
+          "value": "tNk5pGDCLuVJh37yeGZBb",
           "mode": "list",
-          "cachedResultUrl": "/workflow/LXR1D2E3XpKlxQ9t",
+          "cachedResultUrl": "/workflow/tNk5pGDCLuVJh37yeGZBb",
           "cachedResultName": "Approval Sub-Workflow"
         },
         "workflowInputs": {
           "mappingMode": "defineBelow",
           "value": {
-            "department": 18600,
+            "parentResumeUrl": "={{ $execution.resumeUrl }}",
             "stepName": "Core Setup",
-            "parentResumeUrl": "={{ $execution.resumeUrl }}"
+            "department": 18600
           },
           "matchingColumns": [],
           "schema": [
@@ -502,8 +493,7 @@
               "defaultMatch": false,
               "display": true,
               "canBeUsedToMatch": true,
-              "type": "number",
-              "removed": false
+              "type": "number"
             },
             {
               "id": "stepName",
@@ -512,8 +502,7 @@
               "defaultMatch": false,
               "display": true,
               "canBeUsedToMatch": true,
-              "type": "string",
-              "removed": false
+              "type": "string"
             },
             {
               "id": "parentResumeUrl",
@@ -522,8 +511,7 @@
               "defaultMatch": false,
               "display": true,
               "canBeUsedToMatch": true,
-              "type": "string",
-              "removed": false
+              "type": "string"
             }
           ],
           "attemptToConvertTypes": false,
@@ -535,8 +523,8 @@
       },
       "type": "n8n-nodes-base.executeWorkflow",
       "typeVersion": 1.3,
-      "position": [992, -32],
-      "id": "1d1c6257-da6b-46d2-851b-ddc70da34a5e",
+      "position": [1120, 16],
+      "id": "4f7a48fd-cf03-4117-92fa-723dd10ed4a3",
       "name": "Core Setup"
     },
     {
@@ -623,25 +611,25 @@
       },
       "type": "n8n-nodes-base.switch",
       "typeVersion": 3.2,
-      "position": [1216, -48],
-      "id": "0cf43d4e-8f21-4aac-aeb3-1c2334a13e37",
+      "position": [1344, 0],
+      "id": "efecdd63-ba61-4b5e-bb64-c05ec3d9786e",
       "name": "Switch1"
     },
     {
       "parameters": {
         "workflowId": {
           "__rl": true,
-          "value": "LXR1D2E3XpKlxQ9t",
+          "value": "tNk5pGDCLuVJh37yeGZBb",
           "mode": "list",
-          "cachedResultUrl": "/workflow/LXR1D2E3XpKlxQ9t",
+          "cachedResultUrl": "/workflow/tNk5pGDCLuVJh37yeGZBb",
           "cachedResultName": "Approval Sub-Workflow"
         },
         "workflowInputs": {
           "mappingMode": "defineBelow",
           "value": {
-            "department": 18600,
+            "parentResumeUrl": "={{ $execution.resumeUrl }}",
             "stepName": "iBanking Setup",
-            "parentResumeUrl": "={{ $execution.resumeUrl }}"
+            "department": 18600
           },
           "matchingColumns": [],
           "schema": [
@@ -652,8 +640,7 @@
               "defaultMatch": false,
               "display": true,
               "canBeUsedToMatch": true,
-              "type": "number",
-              "removed": false
+              "type": "number"
             },
             {
               "id": "stepName",
@@ -662,8 +649,7 @@
               "defaultMatch": false,
               "display": true,
               "canBeUsedToMatch": true,
-              "type": "string",
-              "removed": false
+              "type": "string"
             },
             {
               "id": "parentResumeUrl",
@@ -672,8 +658,7 @@
               "defaultMatch": false,
               "display": true,
               "canBeUsedToMatch": true,
-              "type": "string",
-              "removed": false
+              "type": "string"
             }
           ],
           "attemptToConvertTypes": false,
@@ -685,8 +670,8 @@
       },
       "type": "n8n-nodes-base.executeWorkflow",
       "typeVersion": 1.3,
-      "position": [1440, -32],
-      "id": "4fb4f738-afa8-4770-b82a-3416143dde4d",
+      "position": [1568, 16],
+      "id": "9ff44132-c344-430e-8114-6b753355a432",
       "name": "iBanking Setup"
     },
     {
@@ -773,25 +758,25 @@
       },
       "type": "n8n-nodes-base.switch",
       "typeVersion": 3.2,
-      "position": [1664, -48],
-      "id": "4c8351a0-391e-446c-b21a-72bd6f49c7b4",
+      "position": [1792, 0],
+      "id": "1d614e99-29ea-4451-9baa-bf3e52815ec6",
       "name": "Switch2"
     },
     {
       "parameters": {
         "workflowId": {
           "__rl": true,
-          "value": "LXR1D2E3XpKlxQ9t",
+          "value": "tNk5pGDCLuVJh37yeGZBb",
           "mode": "list",
-          "cachedResultUrl": "/workflow/LXR1D2E3XpKlxQ9t",
+          "cachedResultUrl": "/workflow/tNk5pGDCLuVJh37yeGZBb",
           "cachedResultName": "Approval Sub-Workflow"
         },
         "workflowInputs": {
           "mappingMode": "defineBelow",
           "value": {
-            "department": 18600,
+            "parentResumeUrl": "={{ $execution.resumeUrl }}",
             "stepName": "Schedule Training",
-            "parentResumeUrl": "={{ $execution.resumeUrl }}"
+            "department": 18600
           },
           "matchingColumns": [],
           "schema": [
@@ -802,8 +787,7 @@
               "defaultMatch": false,
               "display": true,
               "canBeUsedToMatch": true,
-              "type": "number",
-              "removed": false
+              "type": "number"
             },
             {
               "id": "stepName",
@@ -812,8 +796,7 @@
               "defaultMatch": false,
               "display": true,
               "canBeUsedToMatch": true,
-              "type": "string",
-              "removed": false
+              "type": "string"
             },
             {
               "id": "parentResumeUrl",
@@ -822,8 +805,7 @@
               "defaultMatch": false,
               "display": true,
               "canBeUsedToMatch": true,
-              "type": "string",
-              "removed": false
+              "type": "string"
             }
           ],
           "attemptToConvertTypes": false,
@@ -835,25 +817,25 @@
       },
       "type": "n8n-nodes-base.executeWorkflow",
       "typeVersion": 1.3,
-      "position": [1888, -32],
-      "id": "7db910c6-a5ac-4f4f-98ec-519fababf396",
+      "position": [2016, 16],
+      "id": "ab9fa093-1f20-44a9-8566-8221930de1b9",
       "name": "Schedule Training"
     },
     {
       "parameters": {
         "workflowId": {
           "__rl": true,
-          "value": "LXR1D2E3XpKlxQ9t",
+          "value": "tNk5pGDCLuVJh37yeGZBb",
           "mode": "list",
-          "cachedResultUrl": "/workflow/LXR1D2E3XpKlxQ9t",
+          "cachedResultUrl": "/workflow/tNk5pGDCLuVJh37yeGZBb",
           "cachedResultName": "Approval Sub-Workflow"
         },
         "workflowInputs": {
           "mappingMode": "defineBelow",
           "value": {
-            "department": 18600,
+            "parentResumeUrl": "={{ $execution.resumeUrl }}",
             "stepName": "Profile Activation",
-            "parentResumeUrl": "={{ $execution.resumeUrl }}"
+            "department": 18600
           },
           "matchingColumns": [],
           "schema": [
@@ -864,8 +846,7 @@
               "defaultMatch": false,
               "display": true,
               "canBeUsedToMatch": true,
-              "type": "number",
-              "removed": false
+              "type": "number"
             },
             {
               "id": "stepName",
@@ -874,8 +855,7 @@
               "defaultMatch": false,
               "display": true,
               "canBeUsedToMatch": true,
-              "type": "string",
-              "removed": false
+              "type": "string"
             },
             {
               "id": "parentResumeUrl",
@@ -884,8 +864,7 @@
               "defaultMatch": false,
               "display": true,
               "canBeUsedToMatch": true,
-              "type": "string",
-              "removed": false
+              "type": "string"
             }
           ],
           "attemptToConvertTypes": false,
@@ -897,25 +876,25 @@
       },
       "type": "n8n-nodes-base.executeWorkflow",
       "typeVersion": 1.3,
-      "position": [2112, -32],
-      "id": "cbdac591-c422-4846-b2d6-cef60e648a58",
+      "position": [2240, 16],
+      "id": "1331ec2b-c6c8-45bd-afdd-14481fc18ade",
       "name": "Profile Activation"
     },
     {
       "parameters": {
         "workflowId": {
           "__rl": true,
-          "value": "LXR1D2E3XpKlxQ9t",
+          "value": "tNk5pGDCLuVJh37yeGZBb",
           "mode": "list",
-          "cachedResultUrl": "/workflow/LXR1D2E3XpKlxQ9t",
+          "cachedResultUrl": "/workflow/tNk5pGDCLuVJh37yeGZBb",
           "cachedResultName": "Approval Sub-Workflow"
         },
         "workflowInputs": {
           "mappingMode": "defineBelow",
           "value": {
-            "department": 18600,
+            "parentResumeUrl": "={{ $execution.resumeUrl }}",
             "stepName": "User SMS",
-            "parentResumeUrl": "={{ $execution.resumeUrl }}"
+            "department": 18600
           },
           "matchingColumns": [],
           "schema": [
@@ -926,8 +905,7 @@
               "defaultMatch": false,
               "display": true,
               "canBeUsedToMatch": true,
-              "type": "number",
-              "removed": false
+              "type": "number"
             },
             {
               "id": "stepName",
@@ -936,8 +914,7 @@
               "defaultMatch": false,
               "display": true,
               "canBeUsedToMatch": true,
-              "type": "string",
-              "removed": false
+              "type": "string"
             },
             {
               "id": "parentResumeUrl",
@@ -946,8 +923,7 @@
               "defaultMatch": false,
               "display": true,
               "canBeUsedToMatch": true,
-              "type": "string",
-              "removed": false
+              "type": "string"
             }
           ],
           "attemptToConvertTypes": false,
@@ -959,25 +935,25 @@
       },
       "type": "n8n-nodes-base.executeWorkflow",
       "typeVersion": 1.3,
-      "position": [2336, -32],
-      "id": "e9897dd4-02b0-49a3-aaf4-dc4fcc385fb8",
+      "position": [2464, 16],
+      "id": "56a0ad05-9cba-493b-9658-51ac5828134a",
       "name": "User SMS"
     },
     {
       "parameters": {
         "workflowId": {
           "__rl": true,
-          "value": "LXR1D2E3XpKlxQ9t",
+          "value": "tNk5pGDCLuVJh37yeGZBb",
           "mode": "list",
-          "cachedResultUrl": "/workflow/LXR1D2E3XpKlxQ9t",
+          "cachedResultUrl": "/workflow/tNk5pGDCLuVJh37yeGZBb",
           "cachedResultName": "Approval Sub-Workflow"
         },
         "workflowInputs": {
           "mappingMode": "defineBelow",
           "value": {
-            "department": 18600,
+            "parentResumeUrl": "={{ $execution.resumeUrl }}",
             "stepName": "Training Session",
-            "parentResumeUrl": "={{ $execution.resumeUrl }}"
+            "department": 18600
           },
           "matchingColumns": [],
           "schema": [
@@ -988,8 +964,7 @@
               "defaultMatch": false,
               "display": true,
               "canBeUsedToMatch": true,
-              "type": "number",
-              "removed": false
+              "type": "number"
             },
             {
               "id": "stepName",
@@ -998,8 +973,7 @@
               "defaultMatch": false,
               "display": true,
               "canBeUsedToMatch": true,
-              "type": "string",
-              "removed": false
+              "type": "string"
             },
             {
               "id": "parentResumeUrl",
@@ -1008,8 +982,7 @@
               "defaultMatch": false,
               "display": true,
               "canBeUsedToMatch": true,
-              "type": "string",
-              "removed": false
+              "type": "string"
             }
           ],
           "attemptToConvertTypes": false,
@@ -1021,8 +994,8 @@
       },
       "type": "n8n-nodes-base.executeWorkflow",
       "typeVersion": 1.3,
-      "position": [2560, -32],
-      "id": "ebcf0352-b468-4e32-96b2-a623cf0768b7",
+      "position": [2688, 16],
+      "id": "bc0b2c0d-9cee-4ccc-b08b-519e1d4915d0",
       "name": "Training Session"
     }
   ],
@@ -1080,9 +1053,7 @@
             "type": "main",
             "index": 0
           }
-        ],
-        [],
-        []
+        ]
       ]
     },
     "DocuSign - Customer Signature": {
@@ -1201,20 +1172,18 @@
           }
         ]
       ]
-    },
-    "Training Session": {
-      "main": [[]]
     }
   },
-  "active": false,
+  "active": true,
   "settings": {
-    "executionOrder": "v1"
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
   },
-  "versionId": "322ec664-af23-4a42-86af-75df93177efc",
+  "versionId": "3a933c99-a95c-4a1a-8173-6ef20d5cc2df",
   "meta": {
-    "templateCredsSetupCompleted": true,
-    "instanceId": "a5687533f8654661277d143f544d49209a3ffae3f6bf19aec401c16bc6de25ef"
+    "instanceId": "01d4e1c1390e48226f3e36a2b2d517243427ec36a47f0fb53b48e67357e5e3f0"
   },
-  "id": "g9JSf3vD0OvdhrLW",
+  "id": "PEm61owqrEiwljnsZsH74",
   "tags": []
 }

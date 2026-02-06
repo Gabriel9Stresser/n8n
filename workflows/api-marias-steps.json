@@ -1,0 +1,104 @@
+{
+  "name": "API – Etapas do Maria",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "GET",
+        "path": "marias-steps",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [-400, 200],
+      "id": "a1b2c3d4-0001-4000-8000-000000000001",
+      "name": "Webhook"
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "={{ $env.N8N_BASE_URL || 'http://localhost:5678' }}/api/v1/workflows",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-N8N-API-KEY",
+              "value": "={{ $env.N8N_API_KEY }}"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "neverError": true
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [-180, 200],
+      "id": "a1b2c3d4-0002-4000-8000-000000000002",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "jsCode": "const input = $input.first().json;\nlet steps = [];\ntry {\n  if (!input || typeof input !== 'object' || !Array.isArray(input.data)) {\n    return [{ json: { steps: [], error: input?.message || 'Falha ao buscar workflows' } }];\n  }\n  const workflows = input.data;\n  const marias = workflows.find(w => w.name === \"Maria's\") ?? null;\n  if (!marias || !Array.isArray(marias.nodes)) {\n    return [{ json: { steps: [], error: \"Workflow Maria's não encontrado\" } }];\n  }\n  steps = marias.nodes\n    .filter(n => n.type === 'n8n-nodes-base.executeWorkflow' && n.parameters?.options?.waitForSubWorkflow === true)\n    .sort((a, b) => (a.position?.[0] ?? 0) - (b.position?.[0] ?? 0))\n    .map(n => ({\n      id: n.id,\n      name: n.name,\n      stepName: n.parameters?.workflowInputs?.value?.stepName ?? n.name\n    }));\n  return [{ json: { steps } }];\n} catch (e) {\n  return [{ json: { steps: [], error: (e && e.message) || 'Erro ao processar' } }];\n}"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [40, 200],
+      "id": "a1b2c3d4-0003-4000-8000-000000000003",
+      "name": "Code"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [260, 200],
+      "id": "a1b2c3d4-0004-4000-8000-000000000004",
+      "name": "Respond to Webhook"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {},
+  "versionId": "1"
+}

@@ -1,0 +1,187 @@
+{
+  "name": "API – Fila de Aprovação (Maria's)",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "GET",
+        "path": "approval-queue",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [-620, 200],
+      "id": "b2c3d4e5-0001-4000-8000-000000000001",
+      "name": "Webhook"
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "={{ $env.N8N_BASE_URL || 'http://localhost:5678' }}/api/v1/executions?status=waiting&limit=50",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-N8N-API-KEY",
+              "value": "={{ $env.N8N_API_KEY }}"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "neverError": true
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [-400, 200],
+      "id": "b2c3d4e5-0002-4000-8000-000000000002",
+      "name": "GET Executions"
+    },
+    {
+      "parameters": {
+        "jsCode": "const input = $input.first().json;\ntry {\n  if (!input || typeof input !== 'object') {\n    return [{ json: { items: [], error: 'Resposta inválida da API n8n' } }];\n  }\n  if (input.message && !Array.isArray(input.data)) {\n    return [{ json: { items: [], error: `API n8n: ${input.message}. Configure N8N_API_KEY e N8N_BASE_URL no ambiente.` } }];\n  }\n  const data = input.data ?? input;\n  const list = Array.isArray(data) ? data : [];\n  const approval = list;\n  if (approval.length === 0) {\n    return [{ json: { items: [] } }];\n  }\n  return approval.map(e => ({ json: { id: e.id, workflowId: e.workflowId } }));\n} catch (e) {\n  return [{ json: { items: [], error: (e && e.message) || 'Erro ao processar' } }];\n}"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [-180, 200],
+      "id": "b2c3d4e5-0003-4000-8000-000000000003",
+      "name": "Filter Approval"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "cond-empty",
+              "leftValue": "={{ $json.items !== undefined }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [40, 200],
+      "id": "b2c3d4e5-0004-4000-8000-000000000004",
+      "name": "If Empty"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [260, 100],
+      "id": "b2c3d4e5-0005-4000-8000-000000000005",
+      "name": "Respond Empty"
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "={{ $env.N8N_BASE_URL || 'http://localhost:5678' }}/api/v1/executions/{{ $json.id }}?includeData=true",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-N8N-API-KEY",
+              "value": "={{ $env.N8N_API_KEY }}"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "neverError": true
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [260, 300],
+      "id": "b2c3d4e5-0006-4000-8000-000000000006",
+      "name": "GET Execution Details"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combinationMode": "multiplex"
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3,
+      "position": [380, 300],
+      "id": "b2c3d4e5-0009-4000-8000-000000000009",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "jsCode": "const base = $env.N8N_BASE_URL || 'http://localhost:5678';\nconst baseUrl = String(base).replace(/\\/$/, '');\nconst all = $input.all();\nconst items = all.map((inputItem) => {\n  const raw = inputItem.json;\n  const execId = raw.id;\n  const resp = raw.body ?? raw.data ?? raw;\n  const data = (resp && typeof resp === 'object' && resp.data !== undefined ? resp.data : resp) || {};\n  const resultData = data.resultData || {};\n  const runData = resultData.runData || {};\n  let stepName = null;\n  for (const nodeRuns of Object.values(runData)) {\n    const runs = Array.isArray(nodeRuns) ? nodeRuns : [];\n    const firstRun = runs[0];\n    if (!firstRun?.data?.main) continue;\n    const mainData = firstRun.data.main;\n    const firstInput = mainData[0]?.[0]?.json;\n    if (firstInput && typeof firstInput.stepName === 'string') {\n      stepName = firstInput.stepName;\n      break;\n    }\n  }\n  const id = execId || data.id;\n  const wf = data['workflowData'];\n  const workflowName = (wf && typeof wf === 'object' && wf.name) ? wf.name : 'Approval Sub-Workflow';\n  return {\n    id: id,\n    workflowName: workflowName,\n    stepName: stepName,\n    waitUrl: id ? `${baseUrl}/webhook-waiting/${id}` : null,\n    startedAt: data.startedAt,\n    status: data.status,\n  };\n});\nreturn [{ json: { items } }];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [480, 300],
+      "id": "b2c3d4e5-0007-4000-8000-000000000007",
+      "name": "Extract Step Names"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [700, 300],
+      "id": "b2c3d4e5-0008-4000-8000-000000000008",
+      "name": "Respond Queue"
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [[{ "node": "GET Executions", "type": "main", "index": 0 }]]
+    },
+    "GET Executions": {
+      "main": [[{ "node": "Filter Approval", "type": "main", "index": 0 }]]
+    },
+    "Filter Approval": {
+      "main": [[{ "node": "If Empty", "type": "main", "index": 0 }]]
+    },
+    "If Empty": {
+      "main": [
+        [{ "node": "Respond Empty", "type": "main", "index": 0 }],
+        [
+          { "node": "GET Execution Details", "type": "main", "index": 0 },
+          { "node": "Merge", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "GET Execution Details": {
+      "main": [[{ "node": "Merge", "type": "main", "index": 1 }]]
+    },
+    "Merge": {
+      "main": [[{ "node": "Extract Step Names", "type": "main", "index": 0 }]]
+    },
+    "Extract Step Names": {
+      "main": [[{ "node": "Respond Queue", "type": "main", "index": 0 }]]
+    }
+  },
+  "pinData": {},
+  "active": false,
+  "settings": {},
+  "versionId": "1"
+}
