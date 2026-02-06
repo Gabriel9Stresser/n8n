@@ -275,8 +275,14 @@ function App() {
       ? String((startResponse as Record<string, unknown>).resumeUrl)
       : null;
 
-  console.log(pendingExecutions);
+  console.log({ pendingExecutions });
+  console.log({ currentStep });
 
+  console.log({
+    filter: pendingExecutions.filter(
+      (e) => e.workflowName === currentStep?.name,
+    ),
+  });
   return (
     <div className="page">
       <header className="header">
@@ -363,54 +369,58 @@ function App() {
                 {pendingError}
               </div>
             )}
-            {pendingExecutions.length > 0 ? (
+            {pendingExecutions.filter(
+              (e) => e.workflowName === currentStep.name,
+            ).length > 0 ? (
               <div className="pendingList" style={{ marginTop: 8 }}>
-                {pendingExecutions.map((e) => (
-                  <div key={e.id} className="pendingItem">
-                    <div>
-                      <strong>{e.stepName ?? e.workflowName}</strong>
-                      <span className="hint"> – Execução #{e.id}</span>
-                    </div>
-                    <div className="actions" style={{ marginTop: 8 }}>
-                      <button
-                        type="button"
-                        className="btn approve"
-                        onClick={() => sendApproval(e, "approve")}
-                        disabled={busy && busyItemId === e.id}
-                      >
-                        Aprovar
-                      </button>
-                      <button
-                        type="button"
-                        className="btn reject"
-                        onClick={() => sendApproval(e, "reject")}
-                        disabled={busy && busyItemId === e.id}
-                      >
-                        Rejeitar
-                      </button>
-                      <button
-                        type="button"
-                        className="btn return"
-                        onClick={() => sendApproval(e, "return")}
-                        disabled={busy && busyItemId === e.id}
-                      >
-                        Devolver
-                      </button>
-                    </div>
-                    {actionFeedback[e.id] && (
-                      <div
-                        className={`msg ${
-                          actionFeedback[e.id].type === "success"
-                            ? "success"
-                            : "error"
-                        }`}
-                        style={{ marginTop: 8 }}
-                      >
-                        {actionFeedback[e.id].msg}
+                {pendingExecutions
+                  .filter((e) => e.workflowName === currentStep.name)
+                  .map((e) => (
+                    <div key={e.id} className="pendingItem">
+                      <div>
+                        <strong>{e.stepName ?? e.workflowName}</strong>
+                        <span className="hint"> – Execução #{e.id}</span>
                       </div>
-                    )}
-                  </div>
-                ))}
+                      <div className="actions" style={{ marginTop: 8 }}>
+                        <button
+                          type="button"
+                          className="btn approve"
+                          onClick={() => sendApproval(e, "approve")}
+                          disabled={busy && busyItemId === e.id}
+                        >
+                          Aprovar
+                        </button>
+                        <button
+                          type="button"
+                          className="btn reject"
+                          onClick={() => sendApproval(e, "reject")}
+                          disabled={busy && busyItemId === e.id}
+                        >
+                          Rejeitar
+                        </button>
+                        <button
+                          type="button"
+                          className="btn return"
+                          onClick={() => sendApproval(e, "return")}
+                          disabled={busy && busyItemId === e.id}
+                        >
+                          Devolver
+                        </button>
+                      </div>
+                      {actionFeedback[e.id] && (
+                        <div
+                          className={`msg ${
+                            actionFeedback[e.id].type === "success"
+                              ? "success"
+                              : "error"
+                          }`}
+                          style={{ marginTop: 8 }}
+                        >
+                          {actionFeedback[e.id].msg}
+                        </div>
+                      )}
+                    </div>
+                  ))}
               </div>
             ) : (
               pendingExecutions.length <= 0 && (
