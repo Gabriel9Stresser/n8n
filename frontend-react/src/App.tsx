@@ -26,7 +26,7 @@ function App() {
   const [stepsLoading, setStepsLoading] = useState(false);
   const [stepsError, setStepsError] = useState<string | null>(null);
   const [n8nBase, setN8nBase] = useState<string>(
-    import.meta.env.VITE_N8N_BASE ?? DEFAULT_N8N_BASE
+    import.meta.env.VITE_N8N_BASE ?? DEFAULT_N8N_BASE,
   );
   const [startResponse, setStartResponse] = useState<unknown>(null);
   const [startError, setStartError] = useState<string | null>(null);
@@ -69,7 +69,7 @@ function App() {
     const base = n8nBase.replace(/\/$/, "") || DEFAULT_N8N_BASE;
     fetch(`${base}/webhook/marias-steps`)
       .then((res) =>
-        res.ok ? res.json() : Promise.reject(new Error(`HTTP ${res.status}`))
+        res.ok ? res.json() : Promise.reject(new Error(`HTTP ${res.status}`)),
       )
       .then((data: { steps?: StepItem[]; error?: string }) => {
         if (cancelled) return;
@@ -82,7 +82,7 @@ function App() {
             list.length > 0
               ? list.map((s) => s.id)
               : FALLBACK_STEPS.map((s) => s.id);
-          return ids.includes(current) ? current : ids[0] ?? "start";
+          return ids.includes(current) ? current : (ids[0] ?? "start");
         });
       })
       .catch((e) => {
@@ -124,7 +124,7 @@ function App() {
       const results = items.map((e) => ({
         id: e.id,
         workflowName: e.workflowName ?? "?",
-        stepName: e.stepName ?? undefined,
+        stepName: e.workflowName ?? "?",
         waitUrl: e.waitUrl,
       }));
 
@@ -183,7 +183,7 @@ function App() {
           {
             name: data.name,
             department,
-          }
+          },
         );
         if (!resp.ok) {
           const hint =
@@ -207,15 +207,15 @@ function App() {
 
   const currentStep =
     activeTab !== "start"
-      ? effectiveSteps.find((s) => s.id === activeTab) ?? null
+      ? (effectiveSteps.find((s) => s.id === activeTab) ?? null)
       : null;
   const currentStepDisplayLabel = currentStep
-    ? stepsWithDisplayLabel.find((s) => s.id === currentStep.id)
-        ?.displayLabel ?? currentStep.name
+    ? (stepsWithDisplayLabel.find((s) => s.id === currentStep.id)
+        ?.displayLabel ?? currentStep.name)
     : "";
   async function sendApproval(
     item: { id: string; waitUrl: string },
-    action: "approve" | "reject" | "return"
+    action: "approve" | "reject" | "return",
   ) {
     const url = item.waitUrl?.trim();
     if (!url) {
@@ -238,6 +238,7 @@ function App() {
         action,
         department: DEFAULT_DEPARTMENT,
       });
+      console.log({ resp });
       if (resp.ok) {
         setActionFeedback((prev) => ({
           ...prev,
@@ -273,6 +274,8 @@ function App() {
     "resumeUrl" in (startResponse as Record<string, unknown>)
       ? String((startResponse as Record<string, unknown>).resumeUrl)
       : null;
+
+  console.log(pendingExecutions);
 
   return (
     <div className="page">
@@ -360,67 +363,57 @@ function App() {
                 {pendingError}
               </div>
             )}
-            {pendingExecutions.filter(
-              (e) =>
-                e.stepName === currentStep.stepName ||
-                e.stepName === currentStep.name
-            ).length > 0 ? (
+            {pendingExecutions.length > 0 ? (
               <div className="pendingList" style={{ marginTop: 8 }}>
-                {pendingExecutions
-                  .filter(
-                    (e) =>
-                      e.stepName === currentStep.stepName ||
-                      e.stepName === currentStep.name
-                  )
-                  .map((e) => (
-                    <div key={e.id} className="pendingItem">
-                      <div>
-                        <strong>{e.stepName ?? e.workflowName}</strong>
-                        <span className="hint"> – Execução #{e.id}</span>
-                      </div>
-                      <div className="actions" style={{ marginTop: 8 }}>
-                        <button
-                          type="button"
-                          className="btn approve"
-                          onClick={() => sendApproval(e, "approve")}
-                          disabled={busy && busyItemId === e.id}
-                        >
-                          Aprovar
-                        </button>
-                        <button
-                          type="button"
-                          className="btn reject"
-                          onClick={() => sendApproval(e, "reject")}
-                          disabled={busy && busyItemId === e.id}
-                        >
-                          Rejeitar
-                        </button>
-                        <button
-                          type="button"
-                          className="btn return"
-                          onClick={() => sendApproval(e, "return")}
-                          disabled={busy && busyItemId === e.id}
-                        >
-                          Devolver
-                        </button>
-                      </div>
-                      {actionFeedback[e.id] && (
-                        <div
-                          className={`msg ${
-                            actionFeedback[e.id].type === "success"
-                              ? "success"
-                              : "error"
-                          }`}
-                          style={{ marginTop: 8 }}
-                        >
-                          {actionFeedback[e.id].msg}
-                        </div>
-                      )}
+                {pendingExecutions.map((e) => (
+                  <div key={e.id} className="pendingItem">
+                    <div>
+                      <strong>{e.stepName ?? e.workflowName}</strong>
+                      <span className="hint"> – Execução #{e.id}</span>
                     </div>
-                  ))}
+                    <div className="actions" style={{ marginTop: 8 }}>
+                      <button
+                        type="button"
+                        className="btn approve"
+                        onClick={() => sendApproval(e, "approve")}
+                        disabled={busy && busyItemId === e.id}
+                      >
+                        Aprovar
+                      </button>
+                      <button
+                        type="button"
+                        className="btn reject"
+                        onClick={() => sendApproval(e, "reject")}
+                        disabled={busy && busyItemId === e.id}
+                      >
+                        Rejeitar
+                      </button>
+                      <button
+                        type="button"
+                        className="btn return"
+                        onClick={() => sendApproval(e, "return")}
+                        disabled={busy && busyItemId === e.id}
+                      >
+                        Devolver
+                      </button>
+                    </div>
+                    {actionFeedback[e.id] && (
+                      <div
+                        className={`msg ${
+                          actionFeedback[e.id].type === "success"
+                            ? "success"
+                            : "error"
+                        }`}
+                        style={{ marginTop: 8 }}
+                      >
+                        {actionFeedback[e.id].msg}
+                      </div>
+                    )}
+                  </div>
+                ))}
               </div>
             ) : (
-              pendingExecutions.length > 0 && (
+              pendingExecutions.length <= 0 && (
                 <div className="hint" style={{ marginTop: 8 }}>
                   Nenhum item pendente nesta etapa.
                 </div>
@@ -445,7 +438,7 @@ function safeJsonStringify(value: unknown) {
 
 async function postJson<T>(
   url: string,
-  body: unknown
+  body: unknown,
 ): Promise<{ ok: boolean; status: number; json?: T; text?: string }> {
   const res = await fetch(url, {
     method: "POST",

@@ -58,7 +58,7 @@ export function StartFlowPage({
           {
             name: data.name,
             department,
-          }
+          },
         );
         if (!resp.ok) {
           const hint =
